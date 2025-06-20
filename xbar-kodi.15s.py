@@ -71,6 +71,8 @@ def main():
     print("---")
     if playing_title:
         print(f"{playing_title.replace('|', '')} | href={config.url}")
+    else:
+        print(f"Inactive | href={config.url}")
 
 
 @dataclasses.dataclass
