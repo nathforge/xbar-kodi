@@ -82,10 +82,22 @@ class _Main:
         except KodiRpc.Unauthorized:
             print("Kodi username/password incorrect | color=red")
             print("---")
-            print("Click 'xbar' > 'Open Plugin'. | color=red")
-            print("Set the username & password. | color=red")
-            print("Disable then re-enable the plugin. | color=red")
+            print(" • Click 'xbar' > 'Open Plugin'. | color=red")
+            print(" • Set the username & password. | color=red")
+            print(" • Disable then re-enable the plugin. | color=red")
             return
+        except KodiRpc.NotFound:
+            print("Kodi not responding as expected | color=red")
+            print("---")
+            print("Kodi is returning HTTP 404. | color=red")
+            print("Check the URL is correct: | color=red")
+            print(" • Click 'xbar' > 'Open Plugin'. | color=red")
+            print(
+                " • Check the URL. Open it in your browser - it should show the Kodi web UI. | color=red"
+            )
+            print(
+                " • Change the URL if needed, then disable and re-enable the plugin. | color=red"
+            )
 
     def _cmd_default(self):
         first_active_player_id = self._get_first_active_player_id()
@@ -280,6 +292,9 @@ class KodiRpc:
     class Unauthorized(Exception):
         pass
 
+    class NotFound(Exception):
+        pass
+
     def __init__(self, url: str, username: str, password: str):
         self._url = url
         self._username = username
@@ -330,6 +345,8 @@ class KodiRpc:
         except urllib.error.HTTPError as exc:
             if exc.getcode() == 401:
                 raise self.Unauthorized()
+            elif exc.getcode() == 404:
+                raise self.NotFound()
             else:
                 raise
 
