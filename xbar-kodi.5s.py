@@ -82,9 +82,9 @@ class _Main:
         except KodiRpc.Unauthorized:
             print("Kodi username/password incorrect | color=red")
             print("---")
-            print(
-                "Click 'xbar' > 'Open Plugin' and set the username & password | color=red"
-            )
+            print("Click 'xbar' > 'Open Plugin'. | color=red")
+            print("Set the username & password. | color=red")
+            print("Disable then re-enable the plugin. | color=red")
             return
 
     def _cmd_default(self):
