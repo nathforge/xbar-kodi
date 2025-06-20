@@ -8,7 +8,7 @@
 #  <xbar.var>string(VAR_URL="http://localhost:8080/"): Kodi remote control HTTP URL</xbar.var>
 #  <xbar.var>string(VAR_USERNAME=""): Remote control username</xbar.var>
 #  <xbar.var>string(VAR_PASSWORD=""): Remote control password</xbar.var>
-#  <xbar.var>string(VAR_LOG_FILENAME=""): Log location</xbar.var>
+#  <xbar.var>string(VAR_LOG_FILENAME=""): Log location (optional, used for developers)</xbar.var>
 
 import base64
 import dataclasses
