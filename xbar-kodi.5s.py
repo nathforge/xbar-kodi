@@ -45,6 +45,7 @@ class _Main:
         subparsers = parser.add_subparsers(dest="command")
         set_status_parser = subparsers.add_parser("set-status")
         set_status_parser.add_argument("status", choices=["playing", "paused"])
+        subparsers.add_parser("next")
         args = parser.parse_args()
 
         cmd_kwargs = dict(args._get_kwargs())
@@ -70,9 +71,17 @@ class _Main:
             self._config.password,
         )
 
+        self._self_params = [
+            f"--url={self._config.url}",
+            f"--username={self._config.username}",
+            f"--password={self._config.password}",
+            f"--log-filename={self._config.log_filename}",
+        ]
+
         cmd_func = {
             None: self._cmd_default,
             "set-status": self._cmd_set_status,
+            "next": self._cmd_next,
         }[cmd_name]
 
         self._logger.debug(f"calling {cmd_func.__name__}({cmd_kwargs})")
@@ -132,20 +141,12 @@ class _Main:
             status = "playing" if speed > 0 else "paused"
 
             if item["type"] == "episode":
-                self._logger.debug("Constructing title for tvshow")
                 playing_title = f"{item['showtitle']} S{item['season']:02d}E{item['episode']:02d}: {item['title']}"
             elif item["type"] == "movie":
-                self._logger.debug("Constructing title for movies")
                 playing_title = f"{item['title']} ({item['year']})"
             elif item["title"]:
-                self._logger.debug(
-                    "Constructing title for item with a 'title' property"
-                )
                 playing_title = item["title"]
             elif item["label"]:
-                self._logger.debug(
-                    "Constructing title for item with a 'label' property"
-                )
                 playing_title = item["label"]
 
         self._output(f"| templateImage={ICON}")
@@ -167,17 +168,24 @@ class _Main:
             else:
                 raise ValueError("Unexpected status")
 
-            self_params = [
-                f"--url={self._config.url}",
-                f"--username={self._config.username}",
-                f"--password={self._config.password}",
-                f"--log-filename={self._config.log_filename}",
+            set_status_params = [
+                *self._self_params,
                 "set-status",
                 action_status,
             ]
             self._output(
-                f"{status_title} | refresh=true color=#feeeee {self._self_params_str(*self_params)}"
+                f"{status_title} | refresh=true color=#feeeee {self._self_params_str(*set_status_params)}"
             )
+
+            if status == "playing":
+                # Add Next button when playing
+                next_params = [
+                    *self._self_params,
+                    "next",
+                ]
+                self._output(
+                    f"⏭️ Next | refresh=true color=#feeeee {self._self_params_str(*next_params)}"
+                )
 
             if time is not None and total_time is not None:
                 remaining = total_time - time
@@ -199,6 +207,18 @@ class _Main:
             "Player.PlayPause",
             playerid=first_active_player_id,
             play=status == "playing",
+        )
+
+    def _cmd_next(self):
+        first_active_player_id = self._get_first_active_player_id()
+
+        if not first_active_player_id:
+            return
+
+        self._kodi_rpc.call(
+            "Player.GoTo",
+            playerid=first_active_player_id,
+            to="next",
         )
 
     def _output(self, line: str):
